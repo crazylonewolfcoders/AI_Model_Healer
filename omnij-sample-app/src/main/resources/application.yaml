@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: simple-web-app
+
+  jackson:
+    serialization:
+      indent_output: true
+
+
+logging:
+  file:
+    name: logs/sampleapp.log
+  level:
+    root: INFO
+    io.github.crazy.lonewolf: DEBUG
+
+omnij:
+  engine:
+    enableAutoHealing: true
+  jsonvalidations:
+    enableMandatoryChecks: true
