@@ -39,6 +39,7 @@ public class OmniJConfig {
         private int port = 6379;
         private boolean isSSL = false;
         private int timeout = 3000;
+        private boolean useCustomContainer = false;
 
 
     }

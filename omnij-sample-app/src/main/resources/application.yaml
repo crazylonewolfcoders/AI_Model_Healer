@@ -23,3 +23,6 @@ omnij:
     enableAutoHealing: true
   jsonvalidations:
     enableMandatoryChecks: true
+  memoryContainer:
+    useCustomContainer : true
+
