@@ -34,8 +34,8 @@ private OmniJConfig config;
                //    mapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true);
 
                }
-
-               return mapper.treeToValue(templateTree,template.clazz());
+                Class<?> clazz = Class.forName(template.clazzName());
+               return mapper.treeToValue(templateTree,clazz);
            }catch (Exception e){
                throw new JsonTemplateProcessingException(template,e);
            }

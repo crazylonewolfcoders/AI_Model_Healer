@@ -10,8 +10,6 @@ import java.util.Date;
 
 
 public record Template (
-    @JsonIgnore
-     Class<?> clazz,
     String clazzName,
     String template,
     Date created,
@@ -24,16 +22,15 @@ public record Template (
         if (resolution == null) {
             resolution = Resolution.DIRECT;
         }
-        if(clazz == null){
-            try {
-                clazz = Class.forName(clazzName);
-            } catch (ClassNotFoundException e) {
 
-            }
+    }
+    public String toString(){
+        try {
+            return toJson();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
-
-
 
     public String toJson() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();

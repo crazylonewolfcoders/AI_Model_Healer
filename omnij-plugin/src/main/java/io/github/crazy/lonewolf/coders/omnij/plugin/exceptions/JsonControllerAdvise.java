@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.crazy.lonewolf.coders.omnij.plugin.beans.Resolution;
 import io.github.crazy.lonewolf.coders.omnij.plugin.beans.Template;
 import io.github.crazy.lonewolf.coders.omnij.plugin.beans.TemplateInfo;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.ITemplateContainer;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.TemplateContainer;
 import io.github.crazy.lonewolf.coders.omnij.plugin.parser.ITemplateGenerator;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +18,11 @@ import java.util.Date;
 @ControllerAdvice
 @Slf4j
 public class JsonControllerAdvise {
-    private final TemplateContainer container;
+    private final ITemplateContainer container;
 
     private final  ITemplateGenerator jsonTemplateGenerator;
 
-    public JsonControllerAdvise (TemplateContainer container, @Qualifier("JsonGenerator") ITemplateGenerator jsonTemplateGen ){
+    public JsonControllerAdvise (ITemplateContainer container, @Qualifier("JsonGenerator") ITemplateGenerator jsonTemplateGen ){
         this.container = container;
         this.jsonTemplateGenerator = jsonTemplateGen;
     }
@@ -33,7 +34,7 @@ public class JsonControllerAdvise {
       log.error("Recieved Error when trying to process template data ", ex);
       log.info("Adding the failed json to the resolution failure queue");
       Template t = ex.getTemplateData();
-      String className = t.clazz().getName();
+      String className = t.clazzName();
       TemplateInfo info = new TemplateInfo();
       info.setClazz(className);
       container.recordFailure(info,t);
@@ -52,7 +53,7 @@ public class JsonControllerAdvise {
         Template template = null;
 try {
      String t = ((ObjectNode)jsonTemplateGenerator.generateTemplate(ex.getInstance())).toString();
-     template = new Template(ex.getInstance(), ex.getInstance().getName(),t,new Date(),false,"","", Resolution.ENGINE);
+     template = new Template(ex.getInstance().getName(),t,new Date(),false,"","", Resolution.ENGINE);
 
 }catch (Exception e){
     throw new JsonMappingException(

@@ -54,7 +54,7 @@ public class MavenJsonMetaDataGenerator implements  IMetaDataTemplateGenerator{
             for (Template template : templateList) {
 
                 try {
-                    Path newFilePath = generateUniqueFile(fileLocation, template.clazz().getName(), ".oinf", template.toJson());
+                    Path newFilePath = generateUniqueFile(fileLocation, template.clazzName(), ".oinf", template.toJson());
                     writer.write(newFilePath.getFileName() + "\n");
                     System.out.println(newFilePath.getFileName() + "\n");
                 } catch (IOException e) {

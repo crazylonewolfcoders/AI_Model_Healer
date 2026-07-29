@@ -82,7 +82,7 @@ public class JsonTemplateGenerator implements ITemplateGenerator {
     }
 
     public Template generateTemplateObject(Class<?> clazz,String templateInfo,String inboundData){
-        return new Template(clazz,clazz.getName(),templateInfo,new Date(),true,inboundData,"", Resolution.TEMPLATE);
+        return new Template(clazz.getName(),templateInfo,new Date(),true,inboundData,"", Resolution.TEMPLATE);
     }
 
 
@@ -192,7 +192,8 @@ public class JsonTemplateGenerator implements ITemplateGenerator {
                  fileNames.stream().forEach(fileName -> {
                     Template t = readContentFromJar(classLoader, BASE_PATH + fileName);
                      TemplateInfo  templateKey = new TemplateInfo();
-                     templateKey.setClazz(fileName);
+                     String clazzName = fileName.substring(0, fileName.lastIndexOf("."));
+                     templateKey.setClazz(clazzName);
                     container.recordSuccess(templateKey,t);
 
                  });

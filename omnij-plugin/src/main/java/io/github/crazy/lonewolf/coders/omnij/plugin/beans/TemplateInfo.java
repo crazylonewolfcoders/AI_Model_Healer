@@ -25,6 +25,11 @@ public class TemplateInfo {
                 Objects.equals(this.upstreamKey, other.upstreamKey);
     }
 
+    public String getUpstreamKey() {
+        return upstreamKey.isEmpty() ? "default_upstream" : upstreamKey;
+    }
+    public void setUpstreamKey(String upstreamKey) {}
+
     @Override
     public int hashCode() {
         return Objects.hash(this.clazz, this.upstreamKey);
