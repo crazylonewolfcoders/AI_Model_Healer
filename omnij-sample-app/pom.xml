@@ -16,6 +16,31 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <build>
+<plugins>
+    <plugin>
+        <groupId>io.github.crazy.lonewolf.coders</groupId>
+        <artifactId>omnij-plugin</artifactId>
+        <version>1.0.0</version>
+        <configuration>
+        <!-- Pass custom properties directly into Mojo parameters -->
+        <metaDataLocation>${project.build.directory}\classes\META-INF\omnij\</metaDataLocation>
+        <basePackagesLocation>io.github.crazy.lonewolf.coders.model</basePackagesLocation>
+    </configuration>
+        <executions>
+            <execution>
+                <!-- Bind to a specific Maven lifecycle phase -->
+                <phase>process-classes</phase>
+                <goals>
+                    <!-- Run the specific goal defined in your Mojo class -->
+                    <goal>omnij</goal>
+                </goals>
+
+            </execution>
+        </executions>
+    </plugin>
+</plugins>
+    </build>
 <dependencies>
     <dependency>
         <groupId>org.springframework.boot</groupId>

@@ -14,6 +14,7 @@ logging:
   file:
     name: logs/sampleapp.log
   level:
+    org.springframework.boot.autoconfigure.condition: DEBUG
     root: INFO
     io.github.crazy.lonewolf: DEBUG
 

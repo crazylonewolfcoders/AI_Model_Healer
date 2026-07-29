@@ -1,20 +1,22 @@
 package io.github.crazy.lonewolf.coders.omnij.plugin.base;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import io.github.crazy.lonewolf.coders.omnij.plugin.annotation.OmniJModel;
 import io.github.crazy.lonewolf.coders.omnij.plugin.annotation.OmniJsonResolver;
 import io.github.crazy.lonewolf.coders.omnij.plugin.beans.Template;
+import io.github.crazy.lonewolf.coders.omnij.plugin.beans.TemplateInfo;
 import io.github.crazy.lonewolf.coders.omnij.plugin.config.OmniJConfig;
 import io.github.crazy.lonewolf.coders.omnij.plugin.exceptions.JsonMappingException;
 import io.github.crazy.lonewolf.coders.omnij.plugin.exceptions.JsonTemplateNotFoundException;
 import io.github.crazy.lonewolf.coders.omnij.plugin.exceptions.JsonTemplateProcessingException;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.ITemplateContainer;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.TemplateContainer;
 import io.github.crazy.lonewolf.coders.omnij.plugin.parser.ITemplateEngine;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -22,29 +24,30 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import tools.jackson.core.JacksonException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
-@Component
 public class JsonArgumentResolver implements HandlerMethodArgumentResolver {
 
 
 
     private final ITemplateEngine templateEngine;
 
-    @Autowired
-    private TemplateContainer container;
+    private final ITemplateContainer container;
 
-    @Autowired
-    private OmniJConfig config;
+    private final OmniJConfig config;
 
-    public JsonArgumentResolver( @Qualifier("JsonEngine") ITemplateEngine templateEngine) {
+
+
+
+
+    public JsonArgumentResolver( @Qualifier("JsonEngine") ITemplateEngine templateEngine ,  ITemplateContainer container,OmniJConfig config) {
 
         this.templateEngine = templateEngine;
+        this.container = container;
+        this.config = config;
     }
 
 
@@ -72,8 +75,11 @@ public class JsonArgumentResolver implements HandlerMethodArgumentResolver {
             throw new JsonMappingException("Inbound input stream error");
         }
 
+        TemplateInfo templateInfo = new TemplateInfo();
+        templateInfo.setClazz(parameter.getParameterType().getTypeName());
+        templateInfo.setUpstreamKey(webRequest.getHeader("upstream-key"));
 
-        Template tmp = container.getSuccess(parameter.getParameterType().getTypeName());
+        Template tmp = container.getSuccess(templateInfo);
 
         try {
             if(tmp == null || !config.getEngine().isEnableAutoHealing()) {
@@ -82,7 +88,7 @@ public class JsonArgumentResolver implements HandlerMethodArgumentResolver {
             }
         }catch (Exception e){
             if(config.getEngine().isEnableAutoHealing()) {
-                log.error("Processing Failed for direct Mapping... Resort to template mapping... ");
+                log.error("Processing Failed for direct Mapping... Resort to template mapping by updating the templates... ");
                 throw new JsonTemplateNotFoundException(parameter.getParameterType(), e);
             }else{
                 log.error("Processing Failed for direct Mapping... And OmniJ Resolution is not enabled.. ");
@@ -99,7 +105,8 @@ public class JsonArgumentResolver implements HandlerMethodArgumentResolver {
                 log.info("Resolution pending from Engine");
                 break;
             default:
-                    container.recordFailure(parameter.getParameterType().getTypeName(), tmp);
+
+                    container.recordFailure(templateInfo, tmp);
                 break;
 
 

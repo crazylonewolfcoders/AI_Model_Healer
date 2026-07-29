@@ -3,14 +3,11 @@ package io.github.crazy.lonewolf.coders.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.Ordered;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.json.JacksonJsonView;
-import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
