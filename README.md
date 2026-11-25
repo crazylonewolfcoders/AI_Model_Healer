@@ -145,20 +145,20 @@ For each unique `(appName, clientId, upstreamKey, className, operation)` tuple, 
 When an engineer approves a mapping in the Resolution UI, the Resolution Microservice writes the finalized template to the **`success`** field and deletes **`pending`** and **`failure`**, allowing all host application pods to pick up the new mapping immediately without restarts.
 
 ---
+## Communication Between Resolution Engine & Source Application (`IResolutionStrategy`)
 
-## Extending the Resolution Microservice (`IResolutionStrategy`)
-
-Enterprise teams can embed the Resolution Engine inside their own Spring Boot application and supply a custom `IResolutionStrategy` bean to route AI suggestions through internal LLM gateways (such as Azure OpenAI, AWS Bedrock, or self-hosted models) or enforce custom mapping rules:
+`IResolutionStrategy` defines the communication contract between the **OmniJ Resolution Engine** and the **source (host) application** during schema discovery and template lifecycle updates. Implementing this interface lets enterprise teams integrate their own transport layer (such as REST/HTTP, Kafka, or Redis Streams) to exchange value-stripped discovery events and finalized `.oinf` mappings:
 
 ```java
 @Component
-public class EnterpriseAiResolutionStrategy implements IResolutionStrategy {
+public class CustomEngineCommunicationStrategy implements IResolutionStrategy {
 
     @Override
     public String resolveCandidate(TemplateEntity templateEntity, String inputSkeletonJson) {
-        // Call internal LLM gateway or deterministic field matcher
-        // to map inputSkeletonJson paths onto templateEntity's .oinf pointers
-        return suggestedMappingJson;
+        // Transmit the value-stripped inputSkeletonJson and template metadata
+        // between the source application and the OmniJ Resolution Engine
+        // over your enterprise transport layer (e.g., HTTP, Kafka, Redis Streams)
+        return resolutionResponseJson;
     }
 }
 ```
