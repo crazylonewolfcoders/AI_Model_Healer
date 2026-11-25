@@ -4,6 +4,7 @@
     <excludeFromCompile>
       <directory url="file://$PROJECT_DIR$/omnij-plugin/src/main/resources/archetype-resources" includeSubdirectories="true" />
       <directory url="file://$PROJECT_DIR$/omnij-engine/src/main/resources/archetype-resources" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/omnij-utils/src/main/resources/archetype-resources" includeSubdirectories="true" />
     </excludeFromCompile>
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
@@ -21,7 +22,7 @@
         </processorPath>
         <module name="omnij-plugin" />
         <module name="omnij-sample-app" />
-        <module name="omnij-engine" />
+        <module name="omnij-utils" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

@@ -1,7 +1,7 @@
 package io.github.crazy.lonewolf.coders.configs;
 
-import io.github.crazy.lonewolf.coders.omnij.plugin.base.JsonArgumentResolver;
-import io.github.crazy.lonewolf.coders.omnij.plugin.config.PluginConfig;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.base.JsonArgumentResolver;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.config.PluginConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;

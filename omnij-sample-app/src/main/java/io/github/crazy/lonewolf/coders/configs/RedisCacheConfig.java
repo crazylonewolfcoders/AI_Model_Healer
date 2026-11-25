@@ -1,9 +1,8 @@
 package io.github.crazy.lonewolf.coders.configs;
 
-import io.github.crazy.lonewolf.coders.omnij.plugin.config.OmniJConfig;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.config.OmniJConfig;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.ITemplateProvisionStrategy;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.RedisKeySerializer;
-import io.github.crazy.lonewolf.coders.omnij.plugin.memory.RedisTemplateContainer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

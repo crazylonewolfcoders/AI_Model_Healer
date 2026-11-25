@@ -1,7 +1,7 @@
 package io.github.crazy.lonewolf.coders.controller;
 
 import io.github.crazy.lonewolf.coders.model.CostAnalysis;
-import io.github.crazy.lonewolf.coders.omnij.plugin.annotation.OmniJsonResolver;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.annotation.OmniJsonResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;

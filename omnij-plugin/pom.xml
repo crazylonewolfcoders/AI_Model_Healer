@@ -77,5 +77,10 @@
         <version>3.15.2</version>
         <scope>provided</scope>
     </dependency>
+    <dependency>
+        <groupId>io.github.crazy.lonewolf.coders</groupId>
+        <artifactId>omnij-utils</artifactId>
+        <version>1.0.0</version>
+    </dependency>
 </dependencies>
 </project>

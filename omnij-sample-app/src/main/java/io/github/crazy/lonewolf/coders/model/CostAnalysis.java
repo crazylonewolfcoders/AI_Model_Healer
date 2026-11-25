@@ -1,9 +1,8 @@
 package io.github.crazy.lonewolf.coders.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.github.crazy.lonewolf.coders.omnij.plugin.annotation.OmniJModel;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.annotation.OmniJModel;
 
 import java.util.Date;
 
