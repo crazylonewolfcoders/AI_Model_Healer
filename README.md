@@ -150,17 +150,38 @@ When an engineer approves a mapping in the Resolution UI, the Resolution Microse
 `IResolutionStrategy` defines the communication contract between the **OmniJ Resolution Engine** and the **source (host) application** during schema discovery and template lifecycle updates. Implementing this interface lets enterprise teams integrate their own transport layer (such as REST/HTTP, Kafka, or Redis Streams) to exchange value-stripped discovery events and finalized `.oinf` mappings:
 
 ```java
-@Component
-public class CustomEngineCommunicationStrategy implements IResolutionStrategy {
+public class RedisStorageStrategy implements ITemplateProvisionStrategy {
+
+    private final LettuceConnectionFactory connectionFactory;
+
+    public RedisStorageStrategy(LettuceConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
 
     @Override
-    public String resolveCandidate(TemplateEntity templateEntity, String inputSkeletonJson) {
-        // Transmit the value-stripped inputSkeletonJson and template metadata
-        // between the source application and the OmniJ Resolution Engine
-        // over your enterprise transport layer (e.g., HTTP, Kafka, Redis Streams)
-        return resolutionResponseJson;
+    public ITemplateContainer provisionContainer() {
+        return new RedisTemplateContainer(this.connectionFactory, "appName");
     }
+
+    @Override
+    public boolean isHealthy() {
+        try {
+            // Eagerly check connection health to prevent runtime failures
+            if (!connectionFactory.isRunning()) {
+                connectionFactory.afterPropertiesSet();
+                connectionFactory.start();
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
 }
+
+
 ```
 
 ---
