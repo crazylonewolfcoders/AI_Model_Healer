@@ -1,190 +1,185 @@
-# OmniJ
+# OmniJ — Self-Healing, Deterministic Schema Mapping Engine for Spring Boot
 
-**Zero-PHI, Compile-Time JSON-to-POJO Integration Framework for Enterprise Spring Boot Applications**
+**OmniJ** is a lightweight, format-extensible Spring Boot plugin and Maven build tool that eliminates brittle client-specific DTOs and manual payload onboarding.
 
-OmniJ minimizes manual JSON mapping code and deployment bottlenecks when integrating external B2B partners, clinics, labs, and financial institutions. Instead of writing custom DTOs and mappers for every partner's payload variation—or routing sensitive data through third-party cloud iPaaS tools—OmniJ parses payloads directly inside your host application's JVM while offloading unknown schema resolution to a decoupled UI and AI-assisted control plane.
+Instead of maintaining dozens of custom adapters per upstream client—or incurring the latency, cost, and unpredictability of running LLMs on live production traffic—OmniJ combines **build-time schema reflection**, **sub-millisecond deterministic JSON Pointer mapping**, and a **zero-PHI self-healing resolution loop**.
 
 ---
 
-## Core Architecture
+## Key Features
 
-OmniJ separates **high-throughput runtime execution** from **schema discovery and resolution**:
+* **Zero-Boilerplate Build Reflection (`omnij-maven-plugin`):** Scans annotated Java domain models during Maven build (`process-classes`) and automatically publishes canonical destination blueprints to PostgreSQL or `META-INF/omnij/`.
+* **Isolated Dual-DataSource Persistence:** Runs inside its own dedicated PostgreSQL schema (`omnij`) and transaction manager (`omnijTransactionManager`) without colliding with your host application's primary `DataSource` or JPA entities.
+* **Sub-Millisecond Runtime Transformation:** Evaluates RFC 6901 JSON Pointers backed by Redis (`ITemplateContainer`) and in-JVM single-flight request coalescing (`SingleFlightTemplateLoader`) to prevent cache stampedes under burst traffic.
+* **Zero-PHI Structural Skeleton Extraction:** When an unknown or changed payload structure fails mapping, OmniJ strips all data values (`JsonSkeletonExtractor`) and dispatches *only* the structural skeleton to the Resolution Microservice—keeping sensitive PII/PHI out of logs, queues, and UIs.
+* **Fail-Safe Onboarding State Machine:** Tracks per-client mapping states (`ACTIVE` vs. `PENDING_RESOLUTION`) so deactivated or unmapped clients fail fast rather than silently ingesting partially mapped data.
+* **Zero-Endpoint Client Provisioning:** Authenticates upstream callers via `omnij-client-id` + SHA-256 hashed `omnij-api-key` headers and syncs non-sensitive client metadata asynchronously (`FOR UPDATE SKIP LOCKED`) with zero admin endpoints exposed on the host application.
+
+---
+
+##  Architecture Overview
 
 ```text
-┌────────────────────────────────────────────────────────────────────────────┐
-│                        HOST SPRING BOOT APPLICATION                        │
-│                                                                            │
-│  Incoming JSON ──► OmniJ Runtime Parser ──► Target Java POJO               │
-│       │                    │                                               │
-│       │ (Cache Miss)       ▼                                               │
-│       │           ITemplateContainer (In-Memory / Redis Hash)              │
-│       ▼                                                                    │
-│  Value-Stripped Skeleton + Compiled .oinf Target Schema                    │
-└───────────────────────────────┬────────────────────────────────────────────┘
-                                │ Single Discovery Event (Zero PHI)
-                                ▼
-┌────────────────────────────────────────────────────────────────────────────┐
-│                     OMNIJ RESOLUTION MICROSERVICE                          │
-│                                                                            │
-│  Discovery Ingest ──► IResolutionStrategy (AI / Heuristic / Custom)        │
-│                                │                                           │
-│                                ▼                                           │
-│                     Angular Mapping & Approval UI                          │
-│                                │ (Approve & Publish)                       │
-│                                ▼                                           │
-│               Promotes Approved Template to Redis Hash ("success")         │
-└────────────────────────────────────────────────────────────────────────────┘
+                       ┌──────────────────────────────────────────┐
+                       │         Maven Build (Compile Time)       │
+                       │  omnij-maven-plugin reflects @Model DTOs │
+                       │  ──► Publishes canonical 1:1 blueprint   │
+                       └────────────────────┬─────────────────────┘
+                                            │
+                                            ▼
+┌──────────────┐   POST /orders    ┌────────────────────────────────────────────┐
+│  Upstream    │ ─────────────────►│         Host Spring Boot Application       │
+│  Client API  │  omnij-client-id  │                                            │
+│              │  omnij-api-key    │  1. Authenticate client (SHA-256 hash)     │
+└──────────────┘                   │  2. Check Redis cache (Single-Flight)      │
+                                   │  3. Check client_templates state (DB)      │
+                                   │  4. Apply deterministic JSON Pointer rules │
+                                   └─────────┬────────────────────────┬─────────┘
+                                             │                        │
+                                    [Success]│               [Mapping Failed]
+                                             ▼                        │
+                                   ┌──────────────────┐               ▼
+                                   │ @RestController  │   ┌──────────────────────┐
+                                   │  Receives Typed  │   │ JsonSkeletonExtractor│
+                                   │   Java Object    │   │ (Strips all values)  │
+                                   └──────────────────┘   └──────────┬───────────┘
+                                                                     │ Async (@HttpExchange)
+                                                                     ▼
+                                                          ┌──────────────────────┐
+                                                          │ Resolution Service & │
+                                                          │     Angular UI       │
+                                                          │ (Maps & pushes rule  │
+                                                          │    back to Redis)    │
+                                                          └──────────────────────┘
 ```
-
-### Key Architectural Principles
-
-* **Zero-PHI Control Plane:** Live business and patient payloads stay strictly inside the host application's JVM. When an unmapped schema arrives, OmniJ strips all values (emitting only structural type tokens) alongside the compile-time `.oinf` target definition before notifying the Resolution Microservice.
-* **Compile-Time `.oinf` Generation:** An annotation processor inspects target POJOs during compilation and generates deterministic JSON Pointer templates (`.oinf`), avoiding runtime reflection overhead and classpath-scanning issues.
-* **Pluggable Storage & Provisioning (`ITemplateContainer`):** State management (`success`, `failure`, `pending`) is abstracted behind a storage-agnostic strategy interface supporting local `ConcurrentHashMap` execution, multi-pod Redis Hashes, or custom enterprise stores.
-* **Resilient Fail-Safe Boundaries:** If external cache infrastructure is unreachable at startup, `PluginConfig` degrades gracefully to a local in-memory circuit-breaker container so host services stay online.
-* **Bring Your Own Infrastructure (BYO-Infra):** Works with your existing Spring Boot stack, database, Redis cluster, and transport layer (HTTP, Redis Streams, or Kafka) without forcing a rigid infrastructure footprint.
 
 ---
 
-## Module Overview
+## Quick Start
 
-| Module | Responsibility |
-| :--- | :--- |
-| **`omnij-compiler` / Annotation Processor** | Generates `.oinf` JSON Pointer schemas from annotated target POJOs at build time. |
-| **`omnij-plugin`** | Runtime Spring Boot starter providing JSON Pointer parsing, `ITemplateContainer` state lifecycle, `ITemplateProvisionStrategy`, and value-stripped schema discovery. |
-| **`omnij-utils` / Common Contracts** | Shared SPI definitions (`Template`, `TemplateInfo`, `IResolutionStrategy`, `RedisKeySerializer`) across host apps and control-plane services. |
-| **`omnij-resolution-engine`** | Control-plane microservice and extensible Spring Boot core that ingests discovery skeletons, runs AI/custom resolution strategies, and publishes approved mappings. |
-| **`omnij-resolution-ui`** | Angular web interface for side-by-side schema inspection, AI auto-suggestion review, and one-click template approval. |
+### 1. Configure the Maven Plugin (`pom.xml`)
+Add `omnij-maven-plugin` to your host microservice so canonical destination blueprints are generated automatically during build:
 
----
-
-## Quick Start: Host Application Integration
-
-### 1. Define Your Target POJO
-
-Annotate your domain models so the OmniJ compiler plugin generates the baseline `.oinf` JSON Pointer template during build:
-
-```java
-package com.example.billing.model;
-
-import lombok.Data;
-
-@Data
-public class CostAnalysis {
-    private String id;
-    private String name;
-    private Double cost;
-    private String date;
-    private CostDetails costDetails;
-}
-```
-
-At compile time, OmniJ generates `CostAnalysis.oinf`:
-
-```json
-{
-  "id": "/id",
-  "name": "/name",
-  "cost": "/cost",
-  "date": "/date",
-  "costDetails": {
-    "dept": "/costDetails/dept",
-    "startDate": "/costDetails/startDate",
-    "endDate": "/costDetails/endDate"
-  }
-}
+```xml
+<plugin>
+    <groupId>io.github.crazy.lonewolf.coders</groupId>
+    <artifactId>omnij-maven-plugin</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <configuration>
+        <basePackagesLocation>com.example.app.model</basePackagesLocation>
+        <action>db</action>
+        <jdbcUrl>\${env.OMNIJ_DB_URL}</jdbcUrl>
+        <username>\${env.DB_USER}</username>
+        <password>\${env.DB_PASS}</password>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <goal>omnij</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 ### 2. Configure `application.yml`
-
-Enable OmniJ engine features and specify whether to use the built-in in-memory container or a custom/Redis storage strategy:
+Configure your primary application database alongside OmniJ's isolated datasource, Redis cache, and Resolver Microservice connection:
 
 ```yaml
+spring:
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/samplewebapp
+    username: \${DB_USER}
+    password: \${DB_PASS}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 omnij:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/omnij_plugin
+    username: \${DB_USER}
+    password: \${DB_PASS}
   engine:
-    enableAutoHealing: true
-  jsonvalidations:
-    enableMandatoryChecks: true
-  memoryContainer:
-    useCustomContainer: true
+    enable-auto-healing: true
+    enable-mandatory-checks: true
+  resolver:
+    base-url: http://localhost:8081
+    api-key: \${OMNIJ_RESOLVER_API_KEY}
+    api-secret: \${OMNIJ_RESOLVER_SECRET}
 ```
 
-### 3. Implement `ITemplateProvisionStrategy` (For Multi-Pod / Redis Deployments)
-
-Provide a Spring `@Configuration` bean implementing `ITemplateProvisionStrategy` to connect OmniJ to your enterprise Redis cluster:
+### 3. Enable OmniJ in Your Spring Boot Application
+Import `OmniJDataSourceConfig` (and `WebAppPrimaryJpaConfig` if your host app relies on Spring Boot's default primary `DataSource`):
 
 ```java
-@Configuration
-public class RedisStorageStrategy implements ITemplateProvisionStrategy {
-
-    private final RedisConnectionFactory connectionFactory;
-
-    public RedisStorageStrategy(RedisConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+@SpringBootApplication(
+    scanBasePackages = {
+        "com.example.app",
+        "io.github.crazy.lonewolf.coders.omnij.plugin.memory"
+    },
+    scanBasePackageClasses = {
+        OmniJDataSourceConfig.class,
+        WebAppPrimaryJpaConfig.class
     }
-
-    @Override
-    public ITemplateContainer provisionContainer() {
-        return new RedisTemplateContainer(connectionFactory, "billing-service");
+)
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
     }
+}
+```
+
+### 4. Annotate Your Controller Parameter
+Use your custom `@GenerateJson` (or OmniJ-resolved) parameter directly in any Spring MVC `@RestController`:
+
+```java
+@PostMapping("/api/v1/orders")
+public ResponseEntity<OrderResponse> createOrder(@GenerateJson OrderRequest order) {
+    return ResponseEntity.ok(orderService.process(order));
 }
 ```
 
 ---
 
-## State Lifecycle & Redis Hash Contract
+## Client Provisioning & Security
 
-For each unique `(appName, clientId, upstreamKey, className, operation)` tuple, `RedisTemplateContainer` maintains a single Redis Hash with three mutually exclusive lifecycle fields:
-
-| Hash Field | Meaning | Runtime Behavior |
-| :--- | :--- | :--- |
-| **`success`** | Active, verified JSON Pointer mapping exists. | Parses incoming JSON directly into the target Java POJO in-JVM. |
-| **`pending`** | Unmapped schema discovered; awaiting review in Resolution UI. | Emits a single discovery event and short-circuits duplicate requests until resolved. |
-| **`failure`** | Schema mismatch or validation failure recorded. | Prevents repeated parse errors and surfaces the broken contract for review. |
-
-When an engineer approves a mapping in the Resolution UI, the Resolution Microservice writes the finalized template to the **`success`** field and deletes **`pending`** and **`failure`**, allowing all host application pods to pick up the new mapping immediately without restarts.
+* **No Exposed Admin Endpoints:** Host applications expose zero client-management REST endpoints.
+* **One-Way SHA-256 Credential Hashing:** Upstream clients pass their raw API key in the `omnij-api-key` header alongside `omnij-client-id` over HTTPS. OmniJ hashes the incoming key in memory (`SHA-256`) and verifies it against `omnij.client_def`.
+* **Safe Metadata Sync:** A background worker (`ClientMetadataSyncWorker`) uses PostgreSQL `FOR UPDATE SKIP LOCKED` to sync non-sensitive client metadata (`id`, `clientName`, `active`) to the Resolution Microservice—never transmitting hashed or raw API keys over the network.
 
 ---
-## Communication Between Resolution Engine & Source Application (`IResolutionStrategy`)
 
-`IResolutionStrategy` defines the communication contract between the **OmniJ Resolution Engine** and the **source (host) application** during schema discovery and template lifecycle updates. Implementing this interface lets enterprise teams integrate their own transport layer (such as REST/HTTP, Kafka, or Redis Streams) to exchange value-stripped discovery events and finalized `.oinf` mappings:
+##  Roadmap
 
-```java
-public class RedisStorageStrategy implements ITemplateProvisionStrategy {
-
-    private final LettuceConnectionFactory connectionFactory;
-
-    public RedisStorageStrategy(LettuceConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
-    }
-
-
-    @Override
-    public ITemplateContainer provisionContainer() {
-        return new RedisTemplateContainer(this.connectionFactory, "appName");
-    }
-
-    @Override
-    public boolean isHealthy() {
-        try {
-            // Eagerly check connection health to prevent runtime failures
-            if (!connectionFactory.isRunning()) {
-                connectionFactory.afterPropertiesSet();
-                connectionFactory.start();
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-
-}
-
-
-```
+* [x] Build-time reflection & canonical schema generation (`omnij-maven-plugin`)
+* [x] Isolated dual-datasource JPA & schema management (`omnij` schema)
+* [x] Single-flight Redis template cache & state-machine argument resolver
+* [x] Zero-PHI JSON skeleton extraction & async failure reporting
+* [ ] AI-Assisted Mapping (Zero-PHI, Resolution-Time Only):
+    * Automatically pre-map unmapped source skeletons to canonical destination blueprints using heuristic name matching + LLM structured outputs inside the Resolver Microservice.
+    * Operates strictly on sanitized structural skeletons (zero PII/PHI exposure) and requires human-in-the-loop approval in the Angular UI before compiling into deterministic runtime rules.
+   
+* [ ] Resolution Microservice REST API & `pac4j` authentication integration
+* [ ] Angular visual mapping workspace with AI-assisted field suggestions
+* [ ] Wildcard array mapping (`/items[*]`) and pluggable XML / HL7 inbound parsers
 
 ---
+
+##  Tech Stack
+
+* **Java 21+ / Virtual Threads**
+* **Spring Boot 4** (Spring MVC, Spring Data JPA, Spring Data Redis, `@HttpExchange`)
+* **Hibernate 7 & PostgreSQL** (`jsonb` storage, isolated schemas, `SKIP LOCKED`)
+* **Jackson** (JSON Pointer evaluation & structural skeleton extraction)
+
 
 ## License
 
