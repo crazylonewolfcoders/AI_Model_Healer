@@ -1,7 +1,6 @@
 package io.github.crazy.lonewolf.coders.omnij.engine.db;
 
 import io.github.crazy.lonewolf.coders.authentication.entity.BaseEntity;
-import io.github.crazy.lonewolf.coders.authentication.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,7 +19,6 @@ public class TemplateStructure extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Long id;
-
 
 
     private String template;

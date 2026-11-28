@@ -9,8 +9,9 @@
 		<module>omnij-plugin</module>
 		<module>omnij-engine</module>
 		<module>omnij-sample-app</module>
+        <module>omnij-engine-webapp</module>
 
-	</modules>
+    </modules>
 	<properties>
 		<java.version>17</java.version>
 		<spring.boot.version>4.0.1</spring.boot.version>
@@ -68,6 +69,18 @@
 				<artifactId>lettuce-core</artifactId>
 				<version>7.5.1.RELEASE</version>
 				<scope>compile</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>io.github.crazy.lonewolf.coders</groupId>
+				<artifactId>authentication</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.postgresql</groupId>
+				<artifactId>postgresql</artifactId>
+				<scope>42.7.14</scope>
 			</dependency>
 
 		</dependencies>

@@ -1,40 +1,45 @@
 package io.github.crazy.lonewolf.coders.omnij.plugin.memory;
 
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.Template;
-import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateInfo;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateKey;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TemplateContainer implements ITemplateContainer {
 
-    private final Map<TemplateInfo, Template> successTemplates = new ConcurrentHashMap<>();
-    private final Map<TemplateInfo, Template> failedTemplates = new ConcurrentHashMap<>();
-    private final Map<TemplateInfo,Template> pendingReview = new ConcurrentHashMap<>();
+    private final Map<TemplateKey, Template> successTemplates = new ConcurrentHashMap<>();
+    private final Map<TemplateKey, Template> failedTemplates = new ConcurrentHashMap<>();
+    private final Map<TemplateKey,Template> pendingReview = new ConcurrentHashMap<>();
 
     @Override
-    public Template getSuccess(TemplateInfo key) {
+    public Template getSuccess(TemplateKey key) {
         return successTemplates.get(key);
     }
     @Override
-    public Template getFailure(TemplateInfo key) {
+    public Template getFailure(TemplateKey key) {
         return failedTemplates.get(key);
     }
 
     @Override
-    public Template getPendingReview(TemplateInfo key){
+    public Template getPendingReview(TemplateKey key){
         return pendingReview.get(key);
     }
 
     @Override
-    public void recordSuccess(TemplateInfo key, Template template) {
+    public Template getDefault(TemplateKey key) {
+        return null;
+    }
+
+    @Override
+    public void recordSuccess(TemplateKey key, Template template) {
         if (key != null) {
             successTemplates.put(key, template);
             failedTemplates.remove(key);
         }
     }
     @Override
-    public void recordFailure(TemplateInfo key, Template template) {
+    public void recordFailure(TemplateKey key, Template template) {
         if (key != null) {
 
             failedTemplates.put(key, template);
@@ -43,7 +48,7 @@ public class TemplateContainer implements ITemplateContainer {
     }
 
     @Override
-    public void recordPendingReview(TemplateInfo key, Template template) {
+    public void recordPendingReview(TemplateKey key, Template template) {
         if (key != null) {
             pendingReview.put(key, template);
             failedTemplates.remove(key);

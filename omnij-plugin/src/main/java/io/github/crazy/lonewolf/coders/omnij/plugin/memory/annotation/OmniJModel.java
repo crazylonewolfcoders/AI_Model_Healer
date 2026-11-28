@@ -8,4 +8,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.PACKAGE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OmniJModel {
+    String templateName() default "";
+    String operation() default "inbound";
 }

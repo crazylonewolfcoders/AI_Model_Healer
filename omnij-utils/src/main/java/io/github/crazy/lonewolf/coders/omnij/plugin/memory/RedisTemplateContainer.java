@@ -1,7 +1,7 @@
 package io.github.crazy.lonewolf.coders.omnij.plugin.memory;
 
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.Template;
-import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateInfo;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateKey;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,6 +24,7 @@ public class RedisTemplateContainer implements ITemplateContainer{
     private static final String FIELD_SUCCESS = "success";
     private static final String FIELD_FAILURE = "failure";
     private static final String FIELD_PENDING = "pending";
+    private static final String FIELD_DEFAULT_TEMPLATE = "template";
 
     public RedisTemplateContainer(RedisConnectionFactory connectionFactory, String appName) {
         if(connectionFactory != null){
@@ -49,28 +50,34 @@ public class RedisTemplateContainer implements ITemplateContainer{
 
 
     @Override
-    public Template getSuccess(TemplateInfo key) {
+    public Template getSuccess(TemplateKey key) {
         String redisKey = keySerializer.toRedisKey(key);
         return (Template) redisTemplate.opsForHash().get(redisKey,FIELD_SUCCESS);
 
     }
 
     @Override
-    public Template getFailure(TemplateInfo key) {
+    public Template getFailure(TemplateKey key) {
         String redisKey = keySerializer.toRedisKey(key);
         return (Template)redisTemplate.opsForHash().get(redisKey, FIELD_FAILURE);
 
     }
 
     @Override
-    public Template getPendingReview(TemplateInfo key) {
+    public Template getPendingReview(TemplateKey key) {
         String redisKey = keySerializer.toRedisKey(key);
         return (Template) redisTemplate.opsForHash().get(redisKey, FIELD_PENDING);
 
     }
 
     @Override
-    public void recordSuccess(TemplateInfo key, Template template) {
+    public Template getDefault(TemplateKey key) {
+        String redisKey = keySerializer.toRedisKey(key);
+        return (Template) redisTemplate.opsForHash().get(redisKey,FIELD_DEFAULT_TEMPLATE);
+    }
+
+    @Override
+    public void recordSuccess(TemplateKey key, Template template) {
         if (key == null) return;
         String redisKey = keySerializer.toRedisKey(key);
 
@@ -80,7 +87,7 @@ public class RedisTemplateContainer implements ITemplateContainer{
     }
 
     @Override
-    public void recordFailure(TemplateInfo key, Template template) {
+    public void recordFailure(TemplateKey key, Template template) {
         if (key == null) return;
         String redisKey = keySerializer.toRedisKey(key);
 
@@ -89,7 +96,7 @@ public class RedisTemplateContainer implements ITemplateContainer{
     }
 
     @Override
-    public void recordPendingReview(TemplateInfo key, Template template) {
+    public void recordPendingReview(TemplateKey key, Template template) {
         if (key == null) return;
         String redisKey = keySerializer.toRedisKey(key);
 

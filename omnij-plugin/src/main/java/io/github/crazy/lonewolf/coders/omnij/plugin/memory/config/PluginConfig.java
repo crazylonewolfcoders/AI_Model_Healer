@@ -1,9 +1,14 @@
 package io.github.crazy.lonewolf.coders.omnij.plugin.memory.config;
 
+import io.github.crazy.lonewolf.coders.omnij.datasource.service.ClientService;
+import io.github.crazy.lonewolf.coders.omnij.datasource.service.ClientTemplateService;
+import io.github.crazy.lonewolf.coders.omnij.datasource.service.SingleFlightTemplateLoader;
+import io.github.crazy.lonewolf.coders.omnij.datasource.service.TemplateService;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.ITemplateContainer;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.ITemplateProvisionStrategy;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.TemplateContainer;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.base.JsonArgumentResolver;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.client.OmniJResolutionDispatcher;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.parser.ITemplateEngine;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.parser.ITemplateGenerator;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.parser.json.JsonTemplateEngine;
@@ -72,9 +77,11 @@ public class PluginConfig {
     }
 
     @Bean
-    @ConditionalOnBean({ITemplateEngine.class,ITemplateContainer.class})
-    public JsonArgumentResolver generateJsonArgumentResolver(ITemplateEngine iTemplateEngine,OmniJConfig omniJConfig,ITemplateContainer container){
-        return new JsonArgumentResolver(iTemplateEngine,container,omniJConfig);
+    @ConditionalOnBean({ITemplateEngine.class,ITemplateContainer.class, TemplateService.class,ClientService.class,OmniJResolutionDispatcher.class})
+    public JsonArgumentResolver generateJsonArgumentResolver(ITemplateEngine iTemplateEngine
+            , OmniJConfig omniJConfig, ITemplateContainer container, ClientService clientService
+            , TemplateService templateService, OmniJResolutionDispatcher  resolutionDispatcher , SingleFlightTemplateLoader singleFlightTemplateLoader, ClientTemplateService clientTemplateService) {
+        return new JsonArgumentResolver(iTemplateEngine,container,omniJConfig,clientService,templateService, resolutionDispatcher,singleFlightTemplateLoader,clientTemplateService);
     }
 
 

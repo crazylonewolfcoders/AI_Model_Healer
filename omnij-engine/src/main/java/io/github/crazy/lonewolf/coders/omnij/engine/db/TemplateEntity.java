@@ -1,12 +1,10 @@
 package io.github.crazy.lonewolf.coders.omnij.engine.db;
 
 import io.github.crazy.lonewolf.coders.authentication.entity.BaseEntity;
+import io.github.crazy.lonewolf.coders.omnij.plugin.entities.ClientEntity;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.ResolutionState;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(

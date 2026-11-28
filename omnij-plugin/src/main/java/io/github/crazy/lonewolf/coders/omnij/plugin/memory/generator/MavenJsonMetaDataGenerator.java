@@ -41,6 +41,11 @@ public class MavenJsonMetaDataGenerator implements  IMetaDataTemplateGenerator{
 
     }
 
+    @Override
+    public void generateMetaData(String scanbasepackages) {
+
+    }
+
     private void generateFilesInLocation(String fileLocation, List<Template> templateList){
 
         File indexFile = new File(fileLocation, "files.idx");

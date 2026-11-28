@@ -1,0 +1,31 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: simple-engine-app
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  jackson:
+    serialization:
+      indent_output: true
+
+
+logging:
+  file:
+    name: logs/sampleapp.log
+  level:
+    org.springframework.boot.autoconfigure.condition: DEBUG
+    root: INFO
+    io.github.crazy.lonewolf: DEBUG
+
+omnij:
+  engine:
+    enableAutoHealing: true
+  jsonvalidations:
+    enableMandatoryChecks: true
+  memoryContainer:
+    useCustomContainer : true
+

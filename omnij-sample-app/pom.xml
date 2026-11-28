@@ -25,8 +25,13 @@
         <configuration>
         <!-- Pass custom properties directly into Mojo parameters -->
         <metaDataLocation>${project.build.directory}\classes\META-INF\omnij\</metaDataLocation>
-        <basePackagesLocation>io.github.crazy.lonewolf.coders.model</basePackagesLocation>
-    </configuration>
+        <basePackagesLocation>io.github.crazy.lonewolf.sampleapp.model</basePackagesLocation>
+            <action>db</action>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/omnij_sampleapp</jdbcUrl>
+            <username>${env.DB_USER}</username>
+            <password>${env.DB_PASS}</password>
+            <appName>sampleapp</appName>
+        </configuration>
         <executions>
             <execution>
                 <!-- Bind to a specific Maven lifecycle phase -->
@@ -77,6 +82,13 @@
     <dependency>
         <groupId>org.springframework.kafka</groupId>
         <artifactId>spring-kafka</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>runtime</scope>
+        <version>42.7.14</version>
     </dependency>
 
 </dependencies>

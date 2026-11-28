@@ -4,18 +4,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Builder
 public record Template (
     String clazzName,
     String template,
-    Date created,
+    Instant created,
     boolean isValid,
-    String upStream,
+    String clientid,
     String downStream,
     Resolution resolution,
-    String inboundTemplate
+    String inboundTemplate,
+    String operation
 ){
     public Template {
         if (resolution == null) {
@@ -32,7 +33,7 @@ public record Template (
     }
 
     public Template withInboundTemplate(String inboundTemplate){
-        return new Template(clazzName(),template(),created(),isValid(),upStream(),downStream(),resolution(),inboundTemplate);
+        return new Template(clazzName(),template(),created(),isValid(), clientid(),downStream(),resolution(),inboundTemplate, operation());
     }
 
 
@@ -42,5 +43,8 @@ public record Template (
         return mapper.writeValueAsString(this);
     }
 
+    public Template withResolution(Resolution resolution) {
+        return new Template(clazzName(),template(),created(),isValid(), clientid(),downStream(),resolution,inboundTemplate(), operation());
+    }
 }
 

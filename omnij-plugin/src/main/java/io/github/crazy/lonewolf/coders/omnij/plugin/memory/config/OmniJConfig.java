@@ -19,6 +19,7 @@ public class OmniJConfig {
     private Engine engine = new Engine();
     private JsonValidations jsonvalidations = new JsonValidations();
     private MemoryContainer memoryContainer = new MemoryContainer();
+    private ResolverConfig resolverConfig = new ResolverConfig();
 
     @Getter @Setter
     public static class Engine {
@@ -43,5 +44,22 @@ public class OmniJConfig {
 
 
     }
+
+
+    @Getter @Setter
+    public static class ResolverConfig{
+        private String baseUrl = "http://localhost:8081";
+        private String apiKey;     // e.g., ${OMNIJ_RESOLVER_API_KEY}
+        private String apiSecret;  // e.g., ${OMNIJ_RESOLVER_SECRET}
+        private int connectTimeoutMs = 2000;
+        private int readTimeoutMs = 5000;
+
+
+    }
+
+
+
+
+
 }
 

@@ -1,6 +1,6 @@
 package io.github.crazy.lonewolf.coders.omnij.plugin.memory;
 
-import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateInfo;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateKey;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
@@ -18,7 +18,7 @@ public class RedisKeySerializer implements RedisSerializer<String> {
     /**
      * Centralized, production-safe key formatter
      */
-    public String toRedisKey(TemplateInfo info) {
+    public String toRedisKey(TemplateKey info) {
         return String.format("%s:templates:%s:%s", 
             this.appPrefix, 
             info.getClazz(),

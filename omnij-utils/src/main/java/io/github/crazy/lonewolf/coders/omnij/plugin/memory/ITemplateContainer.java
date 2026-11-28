@@ -1,20 +1,23 @@
 package io.github.crazy.lonewolf.coders.omnij.plugin.memory;
 
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.Template;
-import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateInfo;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateKey;
 
 public interface ITemplateContainer {
 
-    Template getSuccess(TemplateInfo key);
+    Template getSuccess(TemplateKey key);
 
-    Template getFailure(TemplateInfo key);
+    Template getFailure(TemplateKey key);
 
-    Template getPendingReview(TemplateInfo key);
+    Template getPendingReview(TemplateKey key);
 
-    void recordSuccess(TemplateInfo key, Template template);
+    Template getDefault(TemplateKey key);
 
-    void recordFailure(TemplateInfo key, Template template);
+    void recordSuccess(TemplateKey key, Template template);
 
-    void recordPendingReview(TemplateInfo key, Template template);
+    void recordFailure(TemplateKey key, Template template);
+
+    void recordPendingReview(TemplateKey key, Template template);
+
 
 }

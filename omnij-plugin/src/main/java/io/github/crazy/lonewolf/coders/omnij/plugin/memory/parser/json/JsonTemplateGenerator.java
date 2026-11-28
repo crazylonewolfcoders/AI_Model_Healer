@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.annotation.OmniJModel;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.base.JsonSkeletonExtractor;
-import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateInfo;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.TemplateKey;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.config.OmniJConfig;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.generator.NativeScanner;
 import io.github.crazy.lonewolf.coders.omnij.plugin.memory.ITemplateContainer;
@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,7 +67,7 @@ public class JsonTemplateGenerator implements ITemplateGenerator {
                 try {
                     Template template = generateTemplateObject(Class.forName(bd.getBeanClassName()), templateInfo, "");
                     if (template != null) {
-                        TemplateInfo templateKey = new TemplateInfo();
+                        TemplateKey templateKey = new TemplateKey();
                         templateKey.setClazz(bd.getBeanClassName());
                        // Objects.requireNonNull(container).recordSuccess(templateKey, template); // update the method to write it into a static file.
                         templateArrayList.add(template);
@@ -84,7 +85,7 @@ public class JsonTemplateGenerator implements ITemplateGenerator {
 
     public Template generateTemplateObject(Class<?> clazz,String templateInfo,String inboundData){
         String inboundStucture = JsonSkeletonExtractor.extractSafeSkeleton(inboundData);
-        return new Template(clazz.getName(),templateInfo,new Date(),true,inboundData,"", Resolution.TEMPLATE,inboundStucture);
+        return new Template(clazz.getName(),templateInfo, Instant.now(),true,inboundData,"", Resolution.TEMPLATE,inboundStucture, clazz.getAnnotation(OmniJModel.class).operation());
     }
 
 
@@ -153,7 +154,7 @@ public class JsonTemplateGenerator implements ITemplateGenerator {
             try {
                 Template template = generateTemplateObject(bd, templateInfo, "");
                 if (template != null) {
-                    TemplateInfo templateKey = new TemplateInfo();
+                    TemplateKey templateKey = new TemplateKey();
                     templateKey.setClazz(bd.getName());
                     // Objects.requireNonNull(container).recordSuccess(templateKey, template); // update the method to write it into a static file.
                     templateArrayList.add(template);
@@ -193,7 +194,7 @@ public class JsonTemplateGenerator implements ITemplateGenerator {
                 // 2. Map filenames to their contents via the classloader stream pipeline
                  fileNames.stream().forEach(fileName -> {
                     Template t = readContentFromJar(classLoader, BASE_PATH + fileName);
-                     TemplateInfo  templateKey = new TemplateInfo();
+                     TemplateKey templateKey = new TemplateKey();
                      String clazzName = fileName.substring(0, fileName.lastIndexOf("."));
                      templateKey.setClazz(clazzName);
                     container.recordSuccess(templateKey,t);

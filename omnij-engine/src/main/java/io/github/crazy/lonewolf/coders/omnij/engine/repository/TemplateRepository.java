@@ -1,8 +1,7 @@
 package io.github.crazy.lonewolf.coders.omnij.engine.repository;
 
-import io.github.crazy.lonewolf.coders.omnij.engine.db.ClientId;
 import io.github.crazy.lonewolf.coders.omnij.engine.db.TemplateEntity;
-import io.github.crazy.lonewolf.coders.omnij.engine.db.TemplateQueueItem;
+import io.github.crazy.lonewolf.coders.omnij.plugin.memory.beans.Resolution;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TemplateRepository extends JpaRepository<TemplateEntity, Long> {
 
@@ -28,13 +28,22 @@ public interface TemplateRepository extends JpaRepository<TemplateEntity, Long> 
         WHERE t.status = :status
         ORDER BY t.id DESC
     """)
-    List<TemplateQueueItem> findQueueByStatus(@Param("status") ResolutionStatus status);
+    List<TemplateEntity> findQueueByStatus(@Param("status") Resolution status);
 
     // Loads parent + 1:1 TemplateStructure in a single JOIN when opening the editor or publishing
-    @EntityGraph(attributePaths = {"client", "templateStructure"})
+    @EntityGraph(attributePaths = {"id"})
     Optional<TemplateEntity> findWithStructureById(Long id);
 
     boolean existsByClient_IdAndAppNameAndClassNameAndOperation(
-            ClientId clientId, String appName, String className, String operation
+            UUID clientId, String appName, String className, String operation
     );
+
+
+
+
+
+
+
+
+
 }

@@ -11,6 +11,11 @@ spring:
   jackson:
     serialization:
       indent_output: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/omnij_sampleapp
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
 
 
 logging:
@@ -28,4 +33,14 @@ omnij:
     enableMandatoryChecks: true
   memoryContainer:
     useCustomContainer : true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/omnij_sampleapp
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+
+
+
+
 
